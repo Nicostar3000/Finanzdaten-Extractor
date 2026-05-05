@@ -171,13 +171,6 @@ Der fachliche Ablauf ist:
 5. **DataViewerApp** (`src/gui_viewer.py`) → Visualisierung und Filterung (Charts/Filter sind in `src/apps/viewer/*` aufgeteilt)
 6. **Services** (`src/services/pdf_processing.py`) → Komfortable High-Level-API
 
-1. **FileSelector** (`core/file_selector.py`) → Dateisystem-Traversal, PDF-Sammlung
-2. **PDFExtractor** (`core/pdf_extractor.py`) → Text-Extraktion mit `pypdf`
-3. **FinancialParser** (`core/financial_parser.py`) → Regex-Mustererkennung für Transaktionen
-4. **csv_export** (`csv_export.py`) → Normalisierung und CSV-Schreiber
-5. **DataViewerApp** (`gui_viewer.py`) → Visualisierung und Filterung
-6. **Services** (`services/pdf_processing.py`) → Komfortable High-Level-API
-
 ### Modulbeschreibungen
 
 #### Core-Module
