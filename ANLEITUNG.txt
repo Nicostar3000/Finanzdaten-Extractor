@@ -1,0 +1,49 @@
+PDF Finanzdaten Extraktor - Anleitung
+
+Dieses Programm extrahiert Finanzdaten aus PDF-Dateien von verschiedenen Brokern und speichert sie in CSV-Format.
+
+Funktionen:
+- Extraktion von Text aus PDF-Dateien
+- Parsen von Finanztransaktionen (Käufe, Verkäufe, etc.)
+- Extraktion von Firmen- und Kundendaten
+- GUI für einfache Bedienung
+- CLI für automatisierte Verarbeitung
+
+Verwendung:
+
+1. GUI-Modus (empfohlen für Anfänger):
+   - Führen Sie 'python main.py' aus
+   - Wählen Sie PDF-Dateien oder Ordner aus
+   - Klicken Sie auf "Bestätigen & Daten extrahieren"
+   - Die Daten werden in output.csv gespeichert
+
+2. CLI-Modus:
+   - Führen Sie 'python main.py --cli -f ordner_mit_pdfs -o ausgabe.csv' aus
+   - Oder 'python main.py --cli datei1.pdf datei2.pdf'
+
+Unterstützte Broker:
+- Handelsrepublik
+- Finance Free Capital
+- Investbank AG
+
+Modulare Struktur:
+- core/: Kernmodule für PDF-Extraktion, Finanzparsing und Dateiauswahl
+- utils.py: Hilfsfunktionen für Datenbereinigung und Formatierung
+- gui.py: Grafische Benutzeroberfläche
+- cli.py: Kommandozeilen-Schnittstelle
+- gui_viewer.py: Datenvisualisierung und -anzeige
+
+Installation:
+- Installieren Sie die Abhängigkeiten: pip install -r requirements.txt
+- Stellen Sie sicher, dass pypdf installiert ist
+
+Für Entwickler:
+- Der Code ist modular aufgebaut, um Wiederverwendung zu ermöglichen
+- Gemeinsame Funktionen sind in utils.py ausgelagert
+- Klassen sind in separate Module unterteilt
+
+Fehlerbehebung:
+- Wenn PDFs nicht verarbeitet werden, prüfen Sie die Kodierung
+- Bei GUI-Problemen versuchen Sie den CLI-Modus
+- Logs werden in der Konsole angezeigt</content>
+<parameter name="filePath">c:\Users\User\Downloads\Python-Projekt-LF5\ANLEITUNG.txt
