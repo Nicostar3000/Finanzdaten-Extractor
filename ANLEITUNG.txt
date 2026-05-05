@@ -4,12 +4,10 @@ PDF Finanzdaten Extraktor – Anleitung (Kurz)
 Dieses Projekt liest Transaktionen aus Broker-PDFs (textbasierte PDFs) aus,
 zeigt sie in einer GUI/Diagramm-Ansicht an und exportiert sie als CSV.
 
-
 1) Voraussetzungen
 -----------------
 - Windows 10/11 (oder anderes OS mit Python)
 - Python 3.10+ (empfohlen)
-
 
 2) Installation (im Projektordner)
 ---------------------------------
@@ -25,7 +23,6 @@ Alternative mit Python-Launcher:
   .\.venv\Scripts\Activate.ps1
   py -m pip install -r requirements.txt
 
-
 3) Start (GUI)
 -------------
 Ohne Parameter startet das Programm im GUI-Modus:
@@ -36,7 +33,6 @@ In der GUI:
 - Ordner oder einzelne PDFs hinzufügen
 - "Als CSV speichern" exportiert direkt
 - "Daten anzeigen & visualisieren" öffnet den Viewer (Tabellen, Diagramme, Filter, Export)
-
 
 4) Start (CLI)
 -------------
@@ -57,7 +53,6 @@ Viewer nach der Verarbeitung öffnen:
 Wichtig:
 - --output und --chart setzen --input voraus.
 
-
 5) Testdaten (testPDF)
 ----------------------
 Im Ordner testPDF liegen Beispiel-PDFs in Unterordnern (z. B. Finance-Free,
@@ -67,13 +62,11 @@ Beispiel:
 
   py main.py --input "testPDF" --output "test-export.csv"
 
-
 6) Ergebnis / CSV
 -----------------
 - Das CSV-Format ist Semikolon-getrennt (Excel-freundlich).
 - Wenn der Zielname schon existiert, wird automatisch ein freier Name erzeugt:
   datei.csv → datei (1).csv → datei (2).csv
-
 
 7) Häufige Probleme
 -------------------
@@ -82,7 +75,6 @@ Beispiel:
 
 - Gescanntes PDF (kein Text):
   -> OCR notwendig; wird aktuell nicht unterstützt.
-
 
 8) Struktur (kurz)
 ------------------
@@ -116,11 +108,6 @@ Verwendung:
    - Führen Sie 'python main.py --cli -f ordner_mit_pdfs -o ausgabe.csv' aus
    - Oder 'python main.py --cli datei1.pdf datei2.pdf'
 
-Unterstützte Broker:
-- Handelsrepublik
-- Finance Free Capital
-- Investbank AG
-
 Modulare Struktur:
 - core/: Kernmodule für PDF-Extraktion, Finanzparsing und Dateiauswahl
 - utils.py: Hilfsfunktionen für Datenbereinigung und Formatierung
@@ -141,4 +128,3 @@ Fehlerbehebung:
 - Wenn PDFs nicht verarbeitet werden, prüfen Sie die Kodierung
 - Bei GUI-Problemen versuchen Sie den CLI-Modus
 - Logs werden in der Konsole angezeigt</content>
-<parameter name="filePath">c:\Users\User\Downloads\Python-Projekt-LF5\ANLEITUNG.txt
