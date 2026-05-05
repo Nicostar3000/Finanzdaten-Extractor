@@ -69,7 +69,6 @@ Wenn `--input` gesetzt ist und `--output` fehlt, wird automatisch im aktuellen O
 
 ```text
 .
-<<<<<<< HEAD
 ├── main.py                            # Einziger direkter Programmeinstieg
 ├── requirements.txt                   # Python-Abhängigkeiten
 ├── README.md                          # Diese Datei
@@ -125,7 +124,6 @@ Wenn `--input` gesetzt ist und `--output` fehlt, wird automatisch im aktuellen O
     ├── portfolio_analysis.py          # Kompatibilitäts-Wrapper -> analysis/portfolio.py
     ├── utils.py                       # Kompatibilitäts-Wrapper -> common/formatting.py
     └── transaction_service.py         # Kompatibilitäts-Wrapper -> services/pdf_processing.py
-=======
 ├── requirements.txt                # Python-Abhängigkeiten
 ├── testPDF/                        # Test-PDFs (Beispiele je Broker)
 └── src/
