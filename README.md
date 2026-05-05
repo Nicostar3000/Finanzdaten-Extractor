@@ -1,6 +1,6 @@
 # PDF Finanzdaten Extraktor
 
-Ein Python-Tool zum Auslesen, Prüfen, Visualisieren und Exportieren von Finanztransaktionen aus Broker-PDFs. Das Projekt bietet eine einfache GUI für die manuelle Arbeit, eine Diagramm-Ansicht für Portfolio-Auswertungen und eine CLI für wiederholbare Exporte.
+Ein Python-Tool zum Auslesen, Prüfen, Visualisieren und Exportieren von Finanztransaktionen aus Broker-PDFs. Das Projekt bietet eine einfache GUI für die manuelle Arbeit, eine Diagramm-Ansicht für Datenvisualisierung und eine CLI für automatisierte Batch-Verarbeitung.
 
 ## Funktionen
 
@@ -69,31 +69,108 @@ Wenn `--input` gesetzt ist und `--output` fehlt, wird automatisch im aktuellen O
 
 ```text
 .
-├── main.py                 # Einziger direkter Programmeinstieg
-├── requirements.txt        # Python-Abhängigkeiten
+├── main.py                            # Einziger direkter Programmeinstieg
+├── requirements.txt                   # Python-Abhängigkeiten
+├── generate_documentation.py          # PDF-Dokumentation generieren
+├── README.md                          # Diese Datei
+│
 ├── src/
-│   ├── cli.py              # CLI-Ablauf und Konsolenausgabe
-│   ├── csv_export.py       # Gemeinsame CSV-Exportlogik
-│   ├── gui.py              # PDF-Auswahl-GUI
-│   ├── gui_viewer.py       # Tabellen, Diagramme und Viewer-Export
-│   ├── utils.py            # Gemeinsame Hilfsfunktionen
-│   └── core/
-│       ├── file_selector.py
-│       ├── financial_parser.py
-│       └── pdf_extractor.py
+│   ├── __init__.py                    # Src-Package-Init
+│   │
+│   ├── cli.py                         # CLI-Modus mit Argument-Parsing und Ausgabe
+│   ├── gui.py                         # GUI-Modus (Tkinter): PDF-Auswahl-Fenster
+│   ├── gui_viewer.py                  # GUI-Modus (Tkinter): Datenviewer mit Tabellen/Diagrammen
+│   ├── csv_export.py                  # CSV-Export mit Semikolon-Trennzeichen und Validierung
+│   ├── utils.py                       # Allgemeine Hilfsfunktionen (Pfade, Strings)
+│   │
+│   ├── core/                          # Core-Modul für Datenverarbeitung
+│   │   ├── __init__.py                # Core-Package-Init (exportiert öffentliche Klassen)
+│   │   ├── file_selector.py           # Dateisystem-Traversal, PDF-Erkennung
+│   │   ├── pdf_extractor.py           # PDF-Text-Extraktion (pypdf-Wrapper)
+│   │   └── financial_parser.py        # Regex-Mustererkennung für Finanzdaten
+│   │
+│   └── services/                      # Service-Modul für Workflows/Pipelines
+│       ├── __init__.py                # Services-Package-Init
+│       └── pdf_processing.py          # Pipeline: collect_pdf_paths, extract_transactions, etc.
+│
+├── docs/
+│   └── 2026-05-05_Dokumentation_SniftedIncluded.pdf  # Projektdokumentation
+│
+└── tests/                             # Unit-Tests (optional)
+    └── test_*.py                      # Test-Dateien
 ```
 
 ## Architektur
+
+Das Projekt folgt einer **Schichtenarchitektur mit klarer Verantwortungsteilung**:
+
+### Schichten-Übersicht
+
+```
+┌─────────────────────────────────────────────┐
+│     GUI / CLI / Externe Aufrufer            │
+│   (main.py, gui.py, cli.py)                 │
+├─────────────────────────────────────────────┤
+│         Services (Workflows)                │
+│     (src/services/pdf_processing.py)        │
+│                                             │
+│  - collect_pdf_paths()                      │
+│  - extract_transactions_from_pdfs()         │
+│  - extract_pdf_results()                    │
+├─────────────────────────────────────────────┤
+│     Core (Datenverarbeitung)                │
+│                                             │
+│  - FileSelector (Datei-Sammlung)            │
+│  - PDFExtractor (Text-Extraktion)           │
+│  - FinancialParser (Regex-Parsing)          │
+├─────────────────────────────────────────────┤
+│     Utilities & Libraries                   │
+│   (pypdf, tkinter, csv, pathlib, etc.)      │
+└─────────────────────────────────────────────┘
+```
+
+### Verarbeitungspipeline
 
 `main.py` entscheidet, ob die GUI oder die CLI gestartet wird. Alle anderen Module sind bewusst nicht direkt ausführbar und stellen nur wiederverwendbare Klassen oder Funktionen bereit.
 
 Der fachliche Ablauf ist:
 
-1. `FileSelector` sammelt PDF-Dateien aus Dateien oder Ordnern.
-2. `PDFExtractor` liest den Text mit `pypdf`.
-3. `FinancialParser` erkennt Transaktionen und Metadaten.
-4. `csv_export.write_transactions_csv` schreibt die Daten in ein einheitliches CSV-Format.
-5. `DataViewerApp` visualisiert und filtert die Daten bei Bedarf.
+1. **FileSelector** (`core/file_selector.py`) → Dateisystem-Traversal, PDF-Sammlung
+2. **PDFExtractor** (`core/pdf_extractor.py`) → Text-Extraktion mit `pypdf`
+3. **FinancialParser** (`core/financial_parser.py`) → Regex-Mustererkennung für Transaktionen
+4. **csv_export** (`csv_export.py`) → Normalisierung und CSV-Schreiber
+5. **DataViewerApp** (`gui_viewer.py`) → Visualisierung und Filterung
+6. **Services** (`services/pdf_processing.py`) → Komfortable High-Level-API
+
+### Modulbeschreibungen
+
+#### Core-Module
+
+| Modul | Klasse | Verantwortung |
+| --- | --- | --- |
+| `file_selector.py` | `FileSelector` | Dateisystem-Navigation, PDF-Sammlung aus Dateien/Ordnern |
+| `pdf_extractor.py` | `PDFExtractor` | Text-Extraktion aus PDFs mit Fehlerbehandlung |
+| `financial_parser.py` | `FinancialParser` | Regex-Parsing für Broker, Datum, Transaktionen, Gebühren |
+
+#### Services-Module
+
+| Modul | Funktion | Verantwortung |
+| --- | --- | --- |
+| `pdf_processing.py` | `collect_pdf_paths()` | Sammelt eindeutige PDF-Pfade aus Eingaben |
+| | `extract_pdf_result()` | Extrahiert eine PDF mit Fehlerbehandlung |
+| | `extract_pdf_results()` | Batch-Extraktion mehrerer PDFs |
+| | `flatten_successful_transactions()` | Flatten erfolgreicher Transaktionen |
+| | `extract_transactions_from_pdfs()` | High-Level-API für Transaktions-Extraktion |
+
+#### UI/Export-Module
+
+| Modul | Klasse | Verantwortung |
+| --- | --- | --- |
+| `cli.py` | `CLIApp` | Kommandozeilen-Interface mit Ausgabe-Formatierung |
+| `gui.py` | `DateiAuswahlApp` | GUI-Fenster für PDF-Auswahl (Tkinter) |
+| `gui_viewer.py` | `DataViewerApp` | Datenviewer mit Tabellen, Diagrammen, Filterung |
+| `csv_export.py` | `write_transactions_csv()` | CSV-Export, Normalisierung, Kollisionserkennung |
+| `utils.py` | Hilfsfunktionen | Pfad-Handling, String-Bereinigung |
 
 ## CSV-Export
 
@@ -107,22 +184,94 @@ portfolio (1).csv
 portfolio (2).csv
 ```
 
-## Entwicklung
+Bei CLI-Verarbeitung wird ein eindeutiger Zeitstempel verwendet:
 
-Syntaxprüfung:
-
-```powershell
-py -m py_compile main.py src\cli.py src\csv_export.py src\gui.py src\gui_viewer.py src\utils.py src\core\file_selector.py src\core\financial_parser.py src\core\pdf_extractor.py
+```text
+Portfolio-CSV-20260505-143022.csv
 ```
 
-CLI-Test mit Beispielordner:
+## Projektdokumentation
+
+Eine detaillierte Projektdokumentation (2 Seiten, PDF-Format) kann mit folgendem Befehl generiert werden:
+
+```powershell
+pip install reportlab
+py generate_documentation.py
+```
+
+Die Dokumentation enthält:
+- Problemstellung und Zielsetzung (SMART-Methode)
+- Ist-Analyse und Architektur-Übersicht
+- Verarbeitungspipeline und Modulbeschreibungen
+- Kritische Bewertung und Ausblick
+
+Die PDF-Datei wird unter `docs/2026-05-05_Dokumentation_SniftedIncluded.pdf` erstellt.
+
+## Entwicklung
+
+### Syntaxprüfung
+
+```powershell
+py -m py_compile main.py `
+  src\cli.py `
+  src\csv_export.py `
+  src\gui.py `
+  src\gui_viewer.py `
+  src\utils.py `
+  src\core\__init__.py `
+  src\core\file_selector.py `
+  src\core\financial_parser.py `
+  src\core\pdf_extractor.py `
+  src\services\__init__.py `
+  src\services\pdf_processing.py
+```
+
+### CLI-Test mit Beispielordner
 
 ```powershell
 py main.py --input PDFs --output output\test-export.csv
 ```
+
+### GUI-Test
+
+```powershell
+py main.py
+```
+
+### Mit Chart-Viewer
+
+```powershell
+py main.py --input PDFs --chart
+```
+
+### Service-API direkt verwenden
+
+```python
+from src.services.pdf_processing import extract_transactions_from_pdfs
+
+# Einfacher API-Aufruf für Transaktions-Extraktion
+transactions = extract_transactions_from_pdfs(['path/to/pdf1.pdf', 'path/to/folder'])
+
+for transaction in transactions:
+    print(f"Broker: {transaction['broker']}, Betrag: {transaction['betrag']}")
+```
+
+## Sprachzusammensetzung
+
+- **Python**: 98,1 % (Kern-Implementierung)
+- **Batch**: 1,9 % (Windows-Automation, optional)
 
 ## Hinweise
 
 - Das Projekt ist auf Broker-PDFs mit textbasierter PDF-Struktur ausgelegt.
 - Eingescannte PDFs ohne eingebetteten Text benötigen OCR und werden aktuell nicht unterstützt.
 - Der Parser ist regelbasiert. Neue Broker-Layouts können durch zusätzliche Muster in `src/core/financial_parser.py` ergänzt werden.
+- Die Anwendung ist plattformübergreifend kompatibel (Python 3.10+), nutzt aber Windows-Batch-Skripte für optionale Automation.
+
+## Lizenz
+
+Derzeit ohne Lizenz. Zukünftige Versionen werden eine Lizenz definieren.
+
+## Kontakt
+
+Erstellt von [Nico](https://github.com/Nicostar3000),[Tommy](https://github.com/kacklinux),[Mats](https://github.com/Snifted)
