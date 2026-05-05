@@ -63,7 +63,8 @@ class FinanzParser:
             return self.transactions
             
         # 1. Brokername: Der erste nicht-leere String im PDF ist verbindlich.
-        zeilen = [zeile.strip() for zeile in text.split('\n') if zeile.strip()]
+        self._lines = text.split("\n")
+        zeilen = [zeile.strip() for zeile in self._lines if zeile.strip()]
         self.global_broker = zeilen[0] if zeilen else "Nil"
         
         # 2. Datum und Depot
@@ -72,6 +73,9 @@ class FinanzParser:
         self.global_target_sum = None
         self.global_time = self._extract_global_time(text)
         self.global_marketplace = self._extract_global_marketplace(text)
+        booking_account, booking_value_date = self._extract_booking_table_values()
+        self.global_settlement_account = booking_account if booking_account != "Nil" else self._extract_global_settlement_account(text)
+        self.global_value_date = booking_value_date if booking_value_date != "Nil" else self._extract_global_value_date(text)
         
         # 3. Kontakt-Daten extrahieren
         self.global_email = self._extract_regex(r'([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)', text)
@@ -176,6 +180,76 @@ class FinanzParser:
                 return self._normalize_marketplace(match.group(1))
         return "Nil"
 
+    def _extract_global_settlement_account(self, text: str) -> str:
+        """Extrahiert das Verrechnungskonto aus typischen Header-/Detailfeldern."""
+        # Häufige Varianten: "Verrechnungskonto: 12345678", "Konto 12345678", IBAN.
+        patterns = [
+            r"(?i)\bverrechnungskonto\s*[:\-]?\s*([A-Z]{2}\d{2}[A-Z0-9 ]{10,32}|\d{6,20})\b",
+            r"(?i)\b(?:konto|kontonummer)\s*[:\-]?\s*(\d{6,20})\b",
+            r"(?i)\bIBAN\s*[:\-]?\s*([A-Z]{2}\d{2}[A-Z0-9 ]{10,32})\b",
+        ]
+        for pattern in patterns:
+            match = re.search(pattern, text)
+            if match:
+                return self._normalize_settlement_account(match.group(1))
+        return "Nil"
+
+    def _extract_global_value_date(self, text: str) -> str:
+        """Extrahiert Valuta(-Datum) aus typischen Header-/Detailfeldern."""
+        patterns = [
+            r"(?i)\bvaluta(?:-datum)?\s*[:\-]?\s*(\d{1,2}[./]\d{1,2}[./]\d{2,4}|\d{4}-\d{2}-\d{2})\b",
+            r"(?i)\bvalutadatum\s*[:\-]?\s*(\d{1,2}[./]\d{1,2}[./]\d{2,4}|\d{4}-\d{2}-\d{2})\b",
+        ]
+        for pattern in patterns:
+            match = re.search(pattern, text)
+            if match:
+                return self._normalize_date(match.group(1))
+        return "Nil"
+
+    def _extract_booking_table_values(self) -> tuple[str, str]:
+        """Liest Verrechnungskonto und Valuta aus der Buchungstabelle.
+
+        In den Test-PDFs steht oft:
+          Buchung
+          Verrechnungskonto Valuta Summe in EUR
+          123456789 15.07.2020 5395,30
+        (mit Tabs/mehrfachen Spaces). Diese Methode ist bewusst tolerant.
+        """
+        if not getattr(self, "_lines", None):
+            return "Nil", "Nil"
+
+        header_re = re.compile(r"(?i)\bverrechnungskonto\b.*\bvaluta\b")
+        for idx, raw_line in enumerate(self._lines):
+            line = (raw_line or "").strip()
+            if not line:
+                continue
+            if not header_re.search(line):
+                continue
+
+            # Suche die nächste nicht-leere Zeile nach dem Header.
+            for j in range(idx + 1, min(idx + 6, len(self._lines))):
+                candidate = (self._lines[j] or "").strip()
+                if not candidate:
+                    continue
+
+                # Kandidat zerfällt je nach PDF in Tabs/Spaces; wir suchen robust:
+                # <konto/iban> <datum> ...
+                m = re.search(
+                    r"([A-Z]{2}\d{2}[A-Z0-9 ]{10,32}|\d{6,20})\s+(\d{1,2}[./]\d{1,2}[./]\d{2,4}|\d{4}-\d{2}-\d{2})",
+                    candidate,
+                )
+                if not m:
+                    continue
+
+                account = self._normalize_settlement_account(m.group(1))
+                value_date = self._normalize_date(m.group(2))
+                return account or "Nil", value_date or "Nil"
+
+            # Header gefunden, aber keine Werte im Folgeblock.
+            return "Nil", "Nil"
+
+        return "Nil", "Nil"
+
     def _normalize_time(self, value: str) -> str:
         value = str(value or "").strip().replace(".", ":")
         return value if re.match(r'^\d{1,2}:\d{2}(?::\d{2})?$', value) else "Nil"
@@ -187,6 +261,37 @@ class FinanzParser:
         # Abschneiden bei typischen Feldtrennern aus PDF-Tabellen.
         cleaned = re.split(r'\s{2,}|\s\|\s|;|,(?=\s*[A-ZÄÖÜ])', cleaned)[0].strip()
         return cleaned or "Nil"
+
+    def _normalize_settlement_account(self, value: str) -> str:
+        raw = re.sub(r"\s+", "", str(value or "").strip())
+        if not raw:
+            return "Nil"
+        # IBAN: beibehalten, nur Leerzeichen entfernen
+        if re.fullmatch(r"[A-Z]{2}\d{2}[A-Z0-9]{10,32}", raw):
+            return raw
+        # Konto: nur Ziffern
+        digits = re.sub(r"\D+", "", raw)
+        return digits if len(digits) >= 6 else "Nil"
+
+    def _normalize_date(self, value: str) -> str:
+        """Normalisiert Datum zu dd.mm.yyyy wenn möglich."""
+        s = str(value or "").strip()
+        if not s:
+            return "Nil"
+        s = s.replace("/", ".")
+        # yyyy-mm-dd
+        m = re.match(r"^(\d{4})-(\d{1,2})-(\d{1,2})$", s)
+        if m:
+            y, mo, d = map(int, m.groups())
+            return f"{d:02d}.{mo:02d}.{y:04d}"
+        # dd.mm.yyyy oder dd.mm.yy
+        m = re.match(r"^(\d{1,2})\.(\d{1,2})\.(\d{2,4})$", s)
+        if m:
+            d, mo, y = m.groups()
+            y = int(y)
+            y = 2000 + y if y < 100 else y
+            return f"{int(d):02d}.{int(mo):02d}.{y:04d}"
+        return "Nil"
 
     def _extract_time_and_marketplace(self, line: str, line_num: int) -> tuple[str, str]:
         """Sucht Uhrzeit und Handelsplatz in Zeile + Nachbarschaft."""
@@ -205,6 +310,24 @@ class FinanzParser:
         time_value = local_time if local_time != "Nil" else self.global_time
         market_value = local_marketplace if local_marketplace != "Nil" else self.global_marketplace
         return time_value, market_value
+
+    def _extract_settlement_and_value_date(self, line: str, line_num: int) -> tuple[str, str]:
+        """Sucht Verrechnungskonto und Valuta-Datum in Zeile + Nachbarschaft."""
+        context_lines = [line]
+        for offset in (-2, -1, 1, 2):
+            idx = line_num + offset
+            if 0 <= idx < len(self._lines):
+                neighbor = self._lines[idx].strip()
+                if neighbor:
+                    context_lines.append(neighbor)
+        context_text = "\n".join(context_lines)
+
+        local_account = self._extract_global_settlement_account(context_text)
+        local_value_date = self._extract_global_value_date(context_text)
+
+        account_value = local_account if local_account != "Nil" else self.global_settlement_account
+        value_date = local_value_date if local_value_date != "Nil" else self.global_value_date
+        return account_value, value_date
 
     def _to_float(self, s: str) -> Optional[float]:
         s = re.sub(r'[€$a-zA-Z()]', '', s).strip()
@@ -225,7 +348,7 @@ class FinanzParser:
 
     def _parse_by_lines(self, text: str):
         """Durchlaeuft alle Textzeilen und merkt sich das zuletzt erkannte Datum."""
-        lines = text.split('\n')
+        lines = text.split("\n")
         self._lines = lines
         last_seen_date = self.global_date
         
@@ -281,6 +404,9 @@ class FinanzParser:
         uhrzeit, handelsplatz = self._extract_time_and_marketplace(line, line_num)
         base_info['uhrzeit'] = uhrzeit
         base_info['handelsplatz'] = handelsplatz
+        verrechnungskonto, valuta_datum = self._extract_settlement_and_value_date(line, line_num)
+        base_info['verrechnungskonto'] = verrechnungskonto
+        base_info['valuta_datum'] = valuta_datum
             
         # 1. AKTIEN-POSITIONEN
         if len(tokens) >= 4:
