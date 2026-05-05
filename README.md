@@ -69,35 +69,57 @@ Wenn `--input` gesetzt ist und `--output` fehlt, wird automatisch im aktuellen O
 
 ```text
 .
-├── main.py                            # Einziger direkter Programmeinstieg
-├── requirements.txt                   # Python-Abhängigkeiten
-├── generate_documentation.py          # PDF-Dokumentation generieren
-├── README.md                          # Diese Datei
-│
-├── src/
-│   ├── __init__.py                    # Src-Package-Init
-│   │
-│   ├── cli.py                         # CLI-Modus mit Argument-Parsing und Ausgabe
-│   ├── gui.py                         # GUI-Modus (Tkinter): PDF-Auswahl-Fenster
-│   ├── gui_viewer.py                  # GUI-Modus (Tkinter): Datenviewer mit Tabellen/Diagrammen
-│   ├── csv_export.py                  # CSV-Export mit Semikolon-Trennzeichen und Validierung
-│   ├── utils.py                       # Allgemeine Hilfsfunktionen (Pfade, Strings)
-│   │
-│   ├── core/                          # Core-Modul für Datenverarbeitung
-│   │   ├── __init__.py                # Core-Package-Init (exportiert öffentliche Klassen)
-│   │   ├── file_selector.py           # Dateisystem-Traversal, PDF-Erkennung
-│   │   ├── pdf_extractor.py           # PDF-Text-Extraktion (pypdf-Wrapper)
-│   │   └── financial_parser.py        # Regex-Mustererkennung für Finanzdaten
-│   │
-│   └── services/                      # Service-Modul für Workflows/Pipelines
-│       ├── __init__.py                # Services-Package-Init
-│       └── pdf_processing.py          # Pipeline: collect_pdf_paths, extract_transactions, etc.
-│
-├── docs/
-│   └── 2026-05-05_Dokumentation_SniftedIncluded.pdf  # Projektdokumentation
-│
-└── tests/                             # Unit-Tests (optional)
-    └── test_*.py                      # Test-Dateien
+├── requirements.txt                # Python-Abhängigkeiten
+├── testPDF/                        # Test-PDFs (Beispiele je Broker)
+└── src/
+    ├── __init__.py                 # Src-Package-Init
+    │
+    ├── apps/                       # App-Schicht (GUI/CLI/Viewer-Wrapper)
+    │   ├── __init__.py
+    │   ├── cli_app.py              # CLI-Implementierung
+    │   ├── pdf_selector.py         # Wrapper -> gui.py (PDF-Auswahl)
+    │   ├── viewer.py               # Wrapper -> gui_viewer.py (Viewer)
+    │   └── viewer/                 # Viewer-Unterpaket (aufgeteilt)
+    │       ├── __init__.py
+    │       ├── charts/
+    │       │   └── chart_mixin.py  # Pie-/Line-Chart-Logik (Mixin)
+    │       └── filters/
+    │           └── filter_mixin.py # Filterpanel + Filterlogik (Mixin)
+    │
+    ├── gui.py                      # PDF-Auswahl-GUI (Tkinter)
+    ├── gui_viewer.py               # Viewer-GUI (Tkinter; nutzt Mixins)
+    │
+    ├── core/                       # Core: PDF/Text/Parsing
+    │   ├── __init__.py
+    │   ├── file_selector.py        # Dateisystem-Traversal, PDF-Erkennung
+    │   ├── pdf_extractor.py        # PDF-Text-Extraktion (pypdf-Wrapper)
+    │   └── financial_parser.py     # Regelbasierter Parser (inkl. Buchungswerte)
+    │
+    ├── services/                   # Service: Workflows/Pipelines
+    │   ├── __init__.py
+    │   └── pdf_processing.py       # Pipeline: collect_pdf_paths, extract_* etc.
+    │
+    ├── export/                     # Export-Implementierung
+    │   ├── __init__.py
+    │   └── csv_writer.py           # CSV-Schreiber
+    │
+    ├── analysis/                   # Analyse-/Aggregationslogik
+    │   ├── __init__.py
+    │   └── portfolio.py
+    │
+    ├── common/                     # Gemeinsame Hilfsfunktionen
+    │   ├── __init__.py
+    │   └── formatting.py
+    │
+    ├── ui/                         # Wiederverwendbare UI-Bausteine
+    │   ├── __init__.py
+    │   └── widgets.py              # Tooltip/Dropdown/Mousewheel
+    │
+    ├── cli.py                      # Kompatibilitäts-Wrapper -> apps/cli_app.py
+    ├── csv_export.py               # Kompatibilitäts-Wrapper -> export/csv_writer.py
+    ├── portfolio_analysis.py       # Kompatibilitäts-Wrapper -> analysis/portfolio.py
+    ├── utils.py                    # Kompatibilitäts-Wrapper -> common/formatting.py
+    └── transaction_service.py      # Kompatibilitäts-Wrapper -> services/pdf_processing.py
 ```
 
 ## Architektur
@@ -274,4 +296,4 @@ Derzeit ohne Lizenz. Zukünftige Versionen werden eine Lizenz definieren.
 
 ## Kontakt
 
-Erstellt von [Nico](https://github.com/Nicostar3000),[Tommy](https://github.com/kacklinux),[Mats](https://github.com/Snifted)
+Erstellt von [Nico](https://github.com/Nicostar3000), [Tommy](https://github.com/kacklinux), [Mats](https://github.com/Snifted)
