@@ -69,6 +69,63 @@ Wenn `--input` gesetzt ist und `--output` fehlt, wird automatisch im aktuellen O
 
 ```text
 .
+<<<<<<< HEAD
+├── main.py                            # Einziger direkter Programmeinstieg
+├── requirements.txt                   # Python-Abhängigkeiten
+├── README.md                          # Diese Datei
+├── testPDF/                           # Test-PDFs (Beispiele je Broker)
+└── src/
+    ├── __init__.py                    # Src-Package-Init
+    │
+    ├── apps/                          # App-Schicht (GUI/CLI/Viewer)
+    │   ├── __init__.py
+    │   ├── cli_app.py                 # CLI-Implementierung
+    │   ├── pdf_selector.py            # Wrapper -> gui.py (PDF-Auswahl)
+    │   ├── viewer.py                  # Wrapper -> gui_viewer.py (Viewer)
+    │   └── viewer/                    # Viewer-Unterpaket (aufgeteilt)
+    │       ├── __init__.py
+    │       ├── charts/
+    │       │   ├── __init__.py
+    │       │   └── chart_mixin.py     # Pie-/Line-Chart-Logik (Mixin)
+    │       └── filters/
+    │           ├── __init__.py
+    │           └── filter_mixin.py    # Filterpanel + Filterlogik (Mixin)
+    │
+    ├── gui.py                         # GUI: PDF-Auswahl (Tkinter)
+    ├── gui_viewer.py                  # GUI: Viewer (Tkinter; nutzt Mixins)
+    │
+    ├── core/                          # Core: PDF/Text/Parsing
+    │   ├── __init__.py
+    │   ├── file_selector.py           # Dateisystem-Traversal, PDF-Erkennung
+    │   ├── pdf_extractor.py           # PDF-Text-Extraktion (pypdf-Wrapper)
+    │   └── financial_parser.py        # Regelbasierter Parser (inkl. Buchungstabelle)
+    │
+    ├── services/                      # Services: Workflows/Pipelines
+    │   ├── __init__.py
+    │   └── pdf_processing.py          # Pipeline: collect_pdf_paths, extract_* etc.
+    │
+    ├── export/                        # Export-Implementierung
+    │   ├── __init__.py
+    │   └── csv_writer.py              # CSV-Schreiber
+    │
+    ├── analysis/                      # Analyse-/Aggregationslogik
+    │   ├── __init__.py
+    │   └── portfolio.py
+    │
+    ├── common/                        # Gemeinsame Hilfsfunktionen
+    │   ├── __init__.py
+    │   └── formatting.py
+    │
+    ├── ui/                            # Wiederverwendbare UI-Bausteine
+    │   ├── __init__.py
+    │   └── widgets.py                 # Tooltip/Dropdown/Mousewheel
+    │
+    ├── cli.py                         # Kompatibilitäts-Wrapper -> apps/cli_app.py
+    ├── csv_export.py                  # Kompatibilitäts-Wrapper -> export/csv_writer.py
+    ├── portfolio_analysis.py          # Kompatibilitäts-Wrapper -> analysis/portfolio.py
+    ├── utils.py                       # Kompatibilitäts-Wrapper -> common/formatting.py
+    └── transaction_service.py         # Kompatibilitäts-Wrapper -> services/pdf_processing.py
+=======
 ├── requirements.txt                # Python-Abhängigkeiten
 ├── testPDF/                        # Test-PDFs (Beispiele je Broker)
 └── src/
@@ -120,6 +177,7 @@ Wenn `--input` gesetzt ist und `--output` fehlt, wird automatisch im aktuellen O
     ├── portfolio_analysis.py       # Kompatibilitäts-Wrapper -> analysis/portfolio.py
     ├── utils.py                    # Kompatibilitäts-Wrapper -> common/formatting.py
     └── transaction_service.py      # Kompatibilitäts-Wrapper -> services/pdf_processing.py
+>>>>>>> a29a889ede7230bb4927613b514533abff0c8114
 ```
 
 ## Architektur
@@ -131,7 +189,11 @@ Das Projekt folgt einer **Schichtenarchitektur mit klarer Verantwortungsteilung*
 ```
 ┌─────────────────────────────────────────────┐
 │     GUI / CLI / Externe Aufrufer            │
+<<<<<<< HEAD
+│   (main.py, src/gui.py, src/apps/*.py)      │
+=======
 │   (main.py, gui.py, cli.py)                 │
+>>>>>>> a29a889ede7230bb4927613b514533abff0c8114
 ├─────────────────────────────────────────────┤
 │         Services (Workflows)                │
 │     (src/services/pdf_processing.py)        │
@@ -146,8 +208,13 @@ Das Projekt folgt einer **Schichtenarchitektur mit klarer Verantwortungsteilung*
 │  - PDFExtractor (Text-Extraktion)           │
 │  - FinancialParser (Regex-Parsing)          │
 ├─────────────────────────────────────────────┤
+<<<<<<< HEAD
+│  Analyse / Export / UI-Bausteine            │
+│   (analysis/, export/, ui/, common/)        │
+=======
 │     Utilities & Libraries                   │
 │   (pypdf, tkinter, csv, pathlib, etc.)      │
+>>>>>>> a29a889ede7230bb4927613b514533abff0c8114
 └─────────────────────────────────────────────┘
 ```
 
@@ -157,12 +224,21 @@ Das Projekt folgt einer **Schichtenarchitektur mit klarer Verantwortungsteilung*
 
 Der fachliche Ablauf ist:
 
+<<<<<<< HEAD
+1. **FileSelector** (`src/core/file_selector.py`) → Dateisystem-Traversal, PDF-Sammlung
+2. **PDFExtractor** (`src/core/pdf_extractor.py`) → Text-Extraktion mit `pypdf`
+3. **FinancialParser** (`src/core/financial_parser.py`) → Regex-/Tabellen-Parsing für Transaktionen & Metadaten
+4. **CSV-Writer** (`src/export/csv_writer.py`) → Normalisierung und CSV-Schreiber
+5. **DataViewerApp** (`src/gui_viewer.py`) → Visualisierung und Filterung (Charts/Filter sind in `src/apps/viewer/*` aufgeteilt)
+6. **Services** (`src/services/pdf_processing.py`) → Komfortable High-Level-API
+=======
 1. **FileSelector** (`core/file_selector.py`) → Dateisystem-Traversal, PDF-Sammlung
 2. **PDFExtractor** (`core/pdf_extractor.py`) → Text-Extraktion mit `pypdf`
 3. **FinancialParser** (`core/financial_parser.py`) → Regex-Mustererkennung für Transaktionen
 4. **csv_export** (`csv_export.py`) → Normalisierung und CSV-Schreiber
 5. **DataViewerApp** (`gui_viewer.py`) → Visualisierung und Filterung
 6. **Services** (`services/pdf_processing.py`) → Komfortable High-Level-API
+>>>>>>> a29a889ede7230bb4927613b514533abff0c8114
 
 ### Modulbeschreibungen
 
@@ -170,14 +246,38 @@ Der fachliche Ablauf ist:
 
 | Modul | Klasse | Verantwortung |
 | --- | --- | --- |
+<<<<<<< HEAD
+| `src/core/file_selector.py` | `FileSelector` | Dateisystem-Navigation, PDF-Sammlung aus Dateien/Ordnern |
+| `src/core/pdf_extractor.py` | `PDFExtractor` | Text-Extraktion aus PDFs mit Fehlerbehandlung |
+| `src/core/financial_parser.py` | `FinancialParser` | Regel-/Regex-Parsing für Broker, Datum, Transaktionen, Gebühren, Buchungswerte |
+=======
 | `file_selector.py` | `FileSelector` | Dateisystem-Navigation, PDF-Sammlung aus Dateien/Ordnern |
 | `pdf_extractor.py` | `PDFExtractor` | Text-Extraktion aus PDFs mit Fehlerbehandlung |
 | `financial_parser.py` | `FinancialParser` | Regex-Parsing für Broker, Datum, Transaktionen, Gebühren |
+>>>>>>> a29a889ede7230bb4927613b514533abff0c8114
 
 #### Services-Module
 
 | Modul | Funktion | Verantwortung |
 | --- | --- | --- |
+<<<<<<< HEAD
+| `src/services/pdf_processing.py` | `collect_pdf_paths()` | Sammelt eindeutige PDF-Pfade aus Eingaben |
+|  | `extract_pdf_result()` | Extrahiert eine PDF mit Fehlerbehandlung |
+|  | `extract_pdf_results()` | Batch-Extraktion mehrerer PDFs |
+|  | `flatten_successful_transactions()` | Flatten erfolgreicher Transaktionen |
+|  | `extract_transactions_from_pdfs()` | High-Level-API für Transaktions-Extraktion |
+
+#### UI/Export-Module
+
+| Modul | Klasse/Funktion | Verantwortung |
+| --- | --- | --- |
+| `src/apps/cli_app.py` | `CLIApp` | Kommandozeilen-Interface mit Ausgabe-Formatierung |
+| `src/gui.py` | `DateiAuswahlApp` | GUI-Fenster für PDF-Auswahl (Tkinter) |
+| `src/gui_viewer.py` | `DataViewerApp` | Datenviewer mit Tabellen, Diagrammen, Filterung |
+| `src/export/csv_writer.py` | `write_transactions_csv()` | CSV-Export, Normalisierung, Kollisionserkennung |
+| `src/common/formatting.py` | Hilfsfunktionen | String-Bereinigung, Sortierung, Formatierung |
+| `src/ui/widgets.py` | UI-Bausteine | Tooltip/Dropdown/Mousewheel |
+=======
 | `pdf_processing.py` | `collect_pdf_paths()` | Sammelt eindeutige PDF-Pfade aus Eingaben |
 | | `extract_pdf_result()` | Extrahiert eine PDF mit Fehlerbehandlung |
 | | `extract_pdf_results()` | Batch-Extraktion mehrerer PDFs |
@@ -193,6 +293,7 @@ Der fachliche Ablauf ist:
 | `gui_viewer.py` | `DataViewerApp` | Datenviewer mit Tabellen, Diagrammen, Filterung |
 | `csv_export.py` | `write_transactions_csv()` | CSV-Export, Normalisierung, Kollisionserkennung |
 | `utils.py` | Hilfsfunktionen | Pfad-Handling, String-Bereinigung |
+>>>>>>> a29a889ede7230bb4927613b514533abff0c8114
 
 ## CSV-Export
 
@@ -235,17 +336,44 @@ Die PDF-Datei wird unter `docs/2026-05-05_Dokumentation_SniftedIncluded.pdf` ers
 
 ```powershell
 py -m py_compile main.py `
+<<<<<<< HEAD
+  src\apps\cli_app.py `
+  src\apps\pdf_selector.py `
+  src\apps\viewer.py `
+  src\apps\viewer\charts\chart_mixin.py `
+  src\apps\viewer\filters\filter_mixin.py `
+  src\gui.py `
+  src\gui_viewer.py `
+=======
   src\cli.py `
   src\csv_export.py `
   src\gui.py `
   src\gui_viewer.py `
   src\utils.py `
+>>>>>>> a29a889ede7230bb4927613b514533abff0c8114
   src\core\__init__.py `
   src\core\file_selector.py `
   src\core\financial_parser.py `
   src\core\pdf_extractor.py `
   src\services\__init__.py `
+<<<<<<< HEAD
+  src\services\pdf_processing.py `
+  src\export\__init__.py `
+  src\export\csv_writer.py `
+  src\analysis\__init__.py `
+  src\analysis\portfolio.py `
+  src\common\__init__.py `
+  src\common\formatting.py `
+  src\ui\__init__.py `
+  src\ui\widgets.py `
+  src\cli.py `
+  src\csv_export.py `
+  src\portfolio_analysis.py `
+  src\utils.py `
+  src\transaction_service.py
+=======
   src\services\pdf_processing.py
+>>>>>>> a29a889ede7230bb4927613b514533abff0c8114
 ```
 
 ### CLI-Test mit Beispielordner
@@ -271,11 +399,18 @@ py main.py --input PDFs --chart
 ```python
 from src.services.pdf_processing import extract_transactions_from_pdfs
 
+<<<<<<< HEAD
+transactions = extract_transactions_from_pdfs(['path/to/pdf1.pdf', 'path/to/folder'])
+
+for transaction in transactions:
+    print(f"Broker: {transaction['broker']}, Betrag: {transaction['amount']}")
+=======
 # Einfacher API-Aufruf für Transaktions-Extraktion
 transactions = extract_transactions_from_pdfs(['path/to/pdf1.pdf', 'path/to/folder'])
 
 for transaction in transactions:
     print(f"Broker: {transaction['broker']}, Betrag: {transaction['betrag']}")
+>>>>>>> a29a889ede7230bb4927613b514533abff0c8114
 ```
 
 ## Sprachzusammensetzung
@@ -288,12 +423,17 @@ for transaction in transactions:
 - Das Projekt ist auf Broker-PDFs mit textbasierter PDF-Struktur ausgelegt.
 - Eingescannte PDFs ohne eingebetteten Text benötigen OCR und werden aktuell nicht unterstützt.
 - Der Parser ist regelbasiert. Neue Broker-Layouts können durch zusätzliche Muster in `src/core/financial_parser.py` ergänzt werden.
+<<<<<<< HEAD
+=======
 - Die Anwendung ist plattformübergreifend kompatibel (Python 3.10+), nutzt aber Windows-Batch-Skripte für optionale Automation.
+>>>>>>> a29a889ede7230bb4927613b514533abff0c8114
 
 ## Lizenz
 
 Derzeit ohne Lizenz. Zukünftige Versionen werden eine Lizenz definieren.
 
 ## Kontakt
+
+Github Repository: https://github.com/Nicostar3000/Finanzdaten-Extractor
 
 Erstellt von [Nico](https://github.com/Nicostar3000), [Tommy](https://github.com/kacklinux), [Mats](https://github.com/Snifted)
