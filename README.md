@@ -124,57 +124,6 @@ Wenn `--input` gesetzt ist und `--output` fehlt, wird automatisch im aktuellen O
     ├── portfolio_analysis.py          # Kompatibilitäts-Wrapper -> analysis/portfolio.py
     ├── utils.py                       # Kompatibilitäts-Wrapper -> common/formatting.py
     └── transaction_service.py         # Kompatibilitäts-Wrapper -> services/pdf_processing.py
-├── requirements.txt                # Python-Abhängigkeiten
-├── testPDF/                        # Test-PDFs (Beispiele je Broker)
-└── src/
-    ├── __init__.py                 # Src-Package-Init
-    │
-    ├── apps/                       # App-Schicht (GUI/CLI/Viewer-Wrapper)
-    │   ├── __init__.py
-    │   ├── cli_app.py              # CLI-Implementierung
-    │   ├── pdf_selector.py         # Wrapper -> gui.py (PDF-Auswahl)
-    │   ├── viewer.py               # Wrapper -> gui_viewer.py (Viewer)
-    │   └── viewer/                 # Viewer-Unterpaket (aufgeteilt)
-    │       ├── __init__.py
-    │       ├── charts/
-    │       │   └── chart_mixin.py  # Pie-/Line-Chart-Logik (Mixin)
-    │       └── filters/
-    │           └── filter_mixin.py # Filterpanel + Filterlogik (Mixin)
-    │
-    ├── gui.py                      # PDF-Auswahl-GUI (Tkinter)
-    ├── gui_viewer.py               # Viewer-GUI (Tkinter; nutzt Mixins)
-    │
-    ├── core/                       # Core: PDF/Text/Parsing
-    │   ├── __init__.py
-    │   ├── file_selector.py        # Dateisystem-Traversal, PDF-Erkennung
-    │   ├── pdf_extractor.py        # PDF-Text-Extraktion (pypdf-Wrapper)
-    │   └── financial_parser.py     # Regelbasierter Parser (inkl. Buchungswerte)
-    │
-    ├── services/                   # Service: Workflows/Pipelines
-    │   ├── __init__.py
-    │   └── pdf_processing.py       # Pipeline: collect_pdf_paths, extract_* etc.
-    │
-    ├── export/                     # Export-Implementierung
-    │   ├── __init__.py
-    │   └── csv_writer.py           # CSV-Schreiber
-    │
-    ├── analysis/                   # Analyse-/Aggregationslogik
-    │   ├── __init__.py
-    │   └── portfolio.py
-    │
-    ├── common/                     # Gemeinsame Hilfsfunktionen
-    │   ├── __init__.py
-    │   └── formatting.py
-    │
-    ├── ui/                         # Wiederverwendbare UI-Bausteine
-    │   ├── __init__.py
-    │   └── widgets.py              # Tooltip/Dropdown/Mousewheel
-    │
-    ├── cli.py                      # Kompatibilitäts-Wrapper -> apps/cli_app.py
-    ├── csv_export.py               # Kompatibilitäts-Wrapper -> export/csv_writer.py
-    ├── portfolio_analysis.py       # Kompatibilitäts-Wrapper -> analysis/portfolio.py
-    ├── utils.py                    # Kompatibilitäts-Wrapper -> common/formatting.py
-    └── transaction_service.py      # Kompatibilitäts-Wrapper -> services/pdf_processing.py
 ```
 
 ## Architektur
@@ -267,16 +216,6 @@ Der fachliche Ablauf ist:
 | | `extract_pdf_results()` | Batch-Extraktion mehrerer PDFs |
 | | `flatten_successful_transactions()` | Flatten erfolgreicher Transaktionen |
 | | `extract_transactions_from_pdfs()` | High-Level-API für Transaktions-Extraktion |
-
-#### UI/Export-Module
-
-| Modul | Klasse | Verantwortung |
-| --- | --- | --- |
-| `cli.py` | `CLIApp` | Kommandozeilen-Interface mit Ausgabe-Formatierung |
-| `gui.py` | `DateiAuswahlApp` | GUI-Fenster für PDF-Auswahl (Tkinter) |
-| `gui_viewer.py` | `DataViewerApp` | Datenviewer mit Tabellen, Diagrammen, Filterung |
-| `csv_export.py` | `write_transactions_csv()` | CSV-Export, Normalisierung, Kollisionserkennung |
-| `utils.py` | Hilfsfunktionen | Pfad-Handling, String-Bereinigung |
 
 ## CSV-Export
 
@@ -387,11 +326,6 @@ transactions = extract_transactions_from_pdfs(['path/to/pdf1.pdf', 'path/to/fold
 for transaction in transactions:
     print(f"Broker: {transaction['broker']}, Betrag: {transaction['betrag']}")
 ```
-
-## Sprachzusammensetzung
-
-- **Python**: 98,1 % (Kern-Implementierung)
-- **Batch**: 1,9 % (Windows-Automation, optional)
 
 ## Hinweise
 
