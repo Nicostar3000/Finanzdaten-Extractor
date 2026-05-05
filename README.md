@@ -1,35 +1,3 @@
-![Wichtiger Hinweis](https://i.imgur.com/cH5rt1X.jpeg)
-
-Optimierungsvorschläge:
-
-ERLEDIGT. Mache das Kreisdiagramm wie folgt übersichtlicher: Fasse in die jetzt Farblich unterteilten Bereiche zusammen und mach sie als einzelnen Feld. Je nachdem auf welches Teil ich klicke werden mir nur noch Positionen von diesem Teil angezeigt. Bitte füge daher Übergangsanimationen ein (Der Teil erweitert sich aufs ganze Diagramm und wird auch wieder kleiner wenn man zurück geht per Knopf oder Rechtsklick. Behalte die angezeigten Prozente in Bezug auf die Brokerauswahl bei, also mach nicht neu 100% Aufteilung sondern zeig an aufs Gesamte.
-
-ERLEDIGT. Entferne aus allen Modulen im Projekt, die Möglichkeit diese selbst auszuführen (if __name__ == "__main__"). Das Programm soll nur über main.py ausführbar sein.
-
-ERLEDIGT. Passe die Kommandozeilenparameter an auf --input --output --chart Wenn keine Parameter gesetzt werden öffnet sich die gui. Vorraussetzung für --output und --chart ist --input. Wenn --output nicht gesetzt wird ist der Standardpfad der aktuelle Ordner und der Dateiname ein einzigartiger Zeitstring wo noch irgendwie Portfolio-CSV steht.
-
-ERLEDGIT. Wir nutzen die beim chart einen export csv Knopf. Benutze die Logik dahinter auch in der GUI auf dem vorgesehenen Knopf. Wenn es die Datei schon gibt beim speichern, mache (1) oder so dahinter.
-
-ERLEDIGT. Füge überall Kommentare hinzu
-
-ERLEDIGT (siehe unten). schreibe eine Professionelle Readme
-
-ANGEFANGEN / Potenzial müsste noch da sein für mehr (hab KI Limit bekommen :)) Optimiere den gesamten Code indem du Doppelte Logik entfernst und alles auslagerst auf neue module was möglich ist.
-
-Lagere alles in neue logische Ordnerstrukturen mit Dateinamen um
-
-
-
-
-
-
-
-
-
-
-
-
-
 # PDF Finanzdaten Extraktor
 
 Ein Python-Tool zum Auslesen, Prüfen, Visualisieren und Exportieren von Finanztransaktionen aus Broker-PDFs. Das Projekt bietet eine einfache GUI für die manuelle Arbeit, eine Diagramm-Ansicht für Portfolio-Auswertungen und eine CLI für wiederholbare Exporte.
