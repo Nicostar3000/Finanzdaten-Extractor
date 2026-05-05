@@ -36,7 +36,7 @@ def parse_args():
 
 def open_gui():
     """Startet die einfache PDF-Auswahl-GUI."""
-    from src.gui import DateiAuswahlApp
+    from src.apps.pdf_selector import DateiAuswahlApp
     import tkinter as tk
 
     root = tk.Tk()
@@ -51,7 +51,7 @@ def main():
         open_gui()
         return
 
-    from src.cli import CLIApp
+    from src.apps.cli_app import CLIApp
 
     cli = CLIApp()
     sys.exit(cli.ausfuehren(args))

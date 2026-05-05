@@ -25,6 +25,7 @@ class FinanzParser:
     def __init__(self):
         self.transactions = []
         self.transaktionen = []  # Alias für Rückwärtskompatibilität
+        self._lines = []
         self._kompiliere_muster()
     
     def _kompiliere_muster(self):
@@ -69,6 +70,8 @@ class FinanzParser:
         self.global_date = self._extract_global_date(text)
         self.global_depot = self._extract_global_depot(text)
         self.global_target_sum = None
+        self.global_time = self._extract_global_time(text)
+        self.global_marketplace = self._extract_global_marketplace(text)
         
         # 3. Kontakt-Daten extrahieren
         self.global_email = self._extract_regex(r'([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)', text)
@@ -149,6 +152,60 @@ class FinanzParser:
             return match.group(1)
         return "Nil"
 
+    def _extract_global_time(self, text: str) -> str:
+        """Extrahiert eine Uhrzeit aus typischen Header-/Detailfeldern."""
+        patterns = [
+            r'(?i)\b(?:uhrzeit|zeit|handelszeit|ausführungszeit|ausfuehrungszeit)\s*[:\-]?\s*(\d{1,2}[:.]\d{2}(?::\d{2})?)\b',
+            r'(?i)\bum\s+(\d{1,2}[:.]\d{2}(?::\d{2})?)\s*uhr\b',
+        ]
+        for pattern in patterns:
+            match = re.search(pattern, text)
+            if match:
+                return self._normalize_time(match.group(1))
+        return "Nil"
+
+    def _extract_global_marketplace(self, text: str) -> str:
+        """Extrahiert Handelsplatz/Boerse aus haeufigen Formulierungen."""
+        patterns = [
+            r'(?i)\b(?:handelsplatz|börse|boerse|marktplatz|ausführungsplatz|ausfuehrungsplatz)\s*[:\-]?\s*([^\n\r;|]+)',
+            r'(?i)\b(?:auf|an der)\s+(xetra|tradegate(?:\s+exchange)?|gettex|ls\s+exchange|lang\s*&?\s*schwarz|quotrix|börse\s+stuttgart|boerse\s+stuttgart|frankfurter\s+wertpapierbörse|frankfurter\s+wertpapierboerse|euronext|nyse|nasdaq)\b',
+        ]
+        for pattern in patterns:
+            match = re.search(pattern, text)
+            if match:
+                return self._normalize_marketplace(match.group(1))
+        return "Nil"
+
+    def _normalize_time(self, value: str) -> str:
+        value = str(value or "").strip().replace(".", ":")
+        return value if re.match(r'^\d{1,2}:\d{2}(?::\d{2})?$', value) else "Nil"
+
+    def _normalize_marketplace(self, value: str) -> str:
+        cleaned = re.sub(r'\s+', ' ', str(value or "")).strip(" ,.;:-")
+        if not cleaned:
+            return "Nil"
+        # Abschneiden bei typischen Feldtrennern aus PDF-Tabellen.
+        cleaned = re.split(r'\s{2,}|\s\|\s|;|,(?=\s*[A-ZÄÖÜ])', cleaned)[0].strip()
+        return cleaned or "Nil"
+
+    def _extract_time_and_marketplace(self, line: str, line_num: int) -> tuple[str, str]:
+        """Sucht Uhrzeit und Handelsplatz in Zeile + Nachbarschaft."""
+        context_lines = [line]
+        for offset in (-2, -1, 1, 2):
+            idx = line_num + offset
+            if 0 <= idx < len(self._lines):
+                neighbor = self._lines[idx].strip()
+                if neighbor:
+                    context_lines.append(neighbor)
+        context_text = "\n".join(context_lines)
+
+        local_time = self._extract_global_time(context_text)
+        local_marketplace = self._extract_global_marketplace(context_text)
+
+        time_value = local_time if local_time != "Nil" else self.global_time
+        market_value = local_marketplace if local_marketplace != "Nil" else self.global_marketplace
+        return time_value, market_value
+
     def _to_float(self, s: str) -> Optional[float]:
         s = re.sub(r'[€$a-zA-Z()]', '', s).strip()
         if not s:
@@ -169,6 +226,7 @@ class FinanzParser:
     def _parse_by_lines(self, text: str):
         """Durchlaeuft alle Textzeilen und merkt sich das zuletzt erkannte Datum."""
         lines = text.split('\n')
+        self._lines = lines
         last_seen_date = self.global_date
         
         for line_num, line in enumerate(lines):
@@ -220,6 +278,9 @@ class FinanzParser:
             'customer_address': self.customer_address,
             'depot': self.global_depot
         }
+        uhrzeit, handelsplatz = self._extract_time_and_marketplace(line, line_num)
+        base_info['uhrzeit'] = uhrzeit
+        base_info['handelsplatz'] = handelsplatz
             
         # 1. AKTIEN-POSITIONEN
         if len(tokens) >= 4:
